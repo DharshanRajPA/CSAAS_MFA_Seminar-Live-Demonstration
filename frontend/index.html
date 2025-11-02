@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MFA Demo - Multi-Factor Authentication</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.2em;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .alert {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .qr-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .qr-container img {
+            max-width: 200px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .step {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .step h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .step p {
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .profile-info {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .profile-info h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .profile-info p {
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-enabled {
+            background: #28a745;
+        }
+
+        .status-disabled {
+            background: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 MFA Demo</h1>
+            <p>Multi-Factor Authentication System</p>
+        </div>
+
+        <!-- Alert container -->
+        <div id="alertContainer"></div>
+
+        <!-- Login/Register Form -->
+        <div id="authForm">
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" placeholder="Enter your email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" placeholder="Enter your password" required>
+            </div>
+            <button class="btn" onclick="login()">Login</button>
+            <button class="btn btn-secondary" onclick="register()">Register</button>
+        </div>
+
+        <!-- MFA Required Section -->
+        <div id="mfaSection" class="hidden">
+            <div class="step">
+                <h3>🔒 Multi-Factor Authentication Required</h3>
+                <p>Your account has MFA enabled. Please choose your verification method:</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="totpCode">TOTP Code (Google Authenticator):</label>
+                <input type="text" id="totpCode" placeholder="Enter 6-digit code" maxlength="6">
+            </div>
+            <button class="btn" onclick="verifyTOTP()">Verify TOTP</button>
+            
+            <div style="text-align: center; margin: 20px 0; color: #666;">OR</div>
+            
+            <button class="btn btn-secondary" onclick="sendEmailOTP()">Use Email OTP Instead</button>
+            
+            <div id="emailOTPSection" class="hidden">
+                <div class="form-group">
+                    <label for="emailOTP">Email OTP:</label>
+                    <input type="text" id="emailOTP" placeholder="Enter OTP from email" maxlength="6">
+                </div>
+                <button class="btn" onclick="verifyEmailOTP()">Verify Email OTP</button>
+            </div>
+        </div>
+
+        <!-- MFA Setup Section -->
+        <div id="mfaSetupSection" class="hidden">
+            <div class="step">
+                <h3>🔧 Enable Multi-Factor Authentication</h3>
+                <p>Scan the QR code with your authenticator app (Google Authenticator, Authy, etc.)</p>
+            </div>
+            
+            <div class="qr-container">
+                <img id="qrImage" alt="QR Code">
+            </div>
+            
+            <div class="form-group">
+                <label for="setupTOTPCode">Enter the 6-digit code from your app:</label>
+                <input type="text" id="setupTOTPCode" placeholder="Enter 6-digit code" maxlength="6">
+            </div>
+            <button class="btn" onclick="verifySetupTOTP()">Verify & Enable MFA</button>
+            <button class="btn btn-secondary" onclick="skipMFA()">Skip MFA Setup</button>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboardSection" class="hidden">
+            <div class="profile-info">
+                <h3>👤 User Profile</h3>
+                <div id="profileInfo"></div>
+            </div>
+            
+            <div class="step">
+                <h3>🛡️ Security Settings</h3>
+                <p>MFA Status: <span id="mfaStatus"></span></p>
+                <button class="btn" id="mfaToggleBtn" onclick="toggleMFA()">Enable MFA</button>
+            </div>
+            
+            <button class="btn btn-danger" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
