@@ -11,16 +11,19 @@ import base64
 import jwt
 import secrets
 import time
+import os
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
 
-# JWT secret for demo (in production, use environment variable)
-JWT_SECRET = "demo_secret_key_change_in_production"
+# JWT secret from environment variable (with fallback for local development)
+JWT_SECRET = os.environ.get('JWT_SECRET', "demo_secret_key_change_in_production")
 JWT_ALGORITHM = "HS256"
 
 class AuthCore:
-    def __init__(self, db_path: str = "auth_demo.db"):
-        self.db_path = db_path
+    def __init__(self, db_path: str = None):
+        # Use environment variable for DB path or default to auth_demo.db
+        # Railway's persistent volume path if available, otherwise use local path
+        self.db_path = db_path or os.environ.get('DATABASE_PATH', "auth_demo.db")
         self.init_db()
     
     def init_db(self):

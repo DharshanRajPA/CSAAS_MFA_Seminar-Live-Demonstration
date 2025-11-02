@@ -5,9 +5,15 @@ Provides REST API endpoints for authentication and MFA flows
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import os
+from pathlib import Path
 from auth_core import AuthCore
 
-app = Flask(__name__, static_folder='../frontend')
+# Get the base directory (backend-minimal-flask)
+BASE_DIR = Path(__file__).parent
+# Get frontend directory (parent directory + frontend)
+FRONTEND_DIR = BASE_DIR.parent / 'frontend'
+
+app = Flask(__name__, static_folder=str(FRONTEND_DIR))
 CORS(app)
 
 # Initialize auth core
@@ -16,12 +22,12 @@ auth = AuthCore()
 @app.route('/')
 def serve_frontend():
     """Serve the main frontend page"""
-    return send_from_directory('../frontend', 'index.html')
+    return send_from_directory(str(FRONTEND_DIR), 'index.html')
 
 @app.route('/<path:filename>')
 def serve_static(filename):
     """Serve static files from frontend directory"""
-    return send_from_directory('../frontend', filename)
+    return send_from_directory(str(FRONTEND_DIR), filename)
 
 @app.route('/api/register', methods=['POST'])
 def register():
@@ -193,7 +199,12 @@ def internal_error(error):
     return jsonify({"error": "Internal server error"}), 500
 
 if __name__ == '__main__':
-    print("Starting MFA Demo Server...")
-    print("Server will be available at: http://localhost:5000")
-    print("Frontend will be served at: http://localhost:5000")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Get port from environment variable (Railway provides this) or default to 5000
+    port = int(os.environ.get('PORT', 5000))
+    # Disable debug mode in production
+    debug = os.environ.get('FLASK_ENV') == 'development'
+    
+    print(f"Starting MFA Demo Server...")
+    print(f"Server will be available at: http://0.0.0.0:{port}")
+    print(f"Frontend will be served at: http://0.0.0.0:{port}")
+    app.run(debug=debug, host='0.0.0.0', port=port)
